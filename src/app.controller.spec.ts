@@ -13,4 +13,10 @@ describe('AppController', () => {
 
     appController = app.get<AppController>(AppController);
   });
+
+  describe('root', () => {
+    it('should return "Hello World!"', () => {
+      expect(appController.getLukePreso()).toBe({ statusPreso: Boolean });
+    });
+  });
 });
