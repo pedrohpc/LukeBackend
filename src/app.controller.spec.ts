@@ -15,8 +15,8 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getLukePreso()).toBe({ statusPreso: false });
+    it('Devolver o status do luke', () => {
+      expect(appController.getLukePreso()).toEqual({ statusPreso: false });
     });
   });
 });
