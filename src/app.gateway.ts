@@ -4,6 +4,7 @@ import {
   OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
+  MessageBody,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
@@ -18,10 +19,42 @@ export class AppGateway
   private logger: Logger = new Logger('AppGateway');
 
   @SubscribeMessage('atualizarLukeStatus')
-  handleMessage(): void {
+  handleEvent(@MessageBody() name: string): void {
     AppService.statusPreso = !AppService.statusPreso;
-    console.log(AppService.statusPreso);
-    this.server.emit('msgToClient', { statusPreso: AppService.statusPreso });
+    const data = new Date();
+    const dia = data.getDate().toString();
+    const diaF = dia.length == 1 ? '0' + dia : dia;
+    const mes = (data.getMonth() + 1).toString(); //+1 pois no getMonth Janeiro começa com zero.
+    const mesF = mes.length == 1 ? '0' + mes : mes;
+    const anoF = data.getFullYear();
+    AppService.statusPreso
+      ? AppService.logs.unshift(
+          name +
+            ' prendeu o Luke às ' +
+            data.toLocaleTimeString('pt-BR') +
+            ' do dia ' +
+            diaF +
+            '/' +
+            mesF +
+            '/' +
+            anoF,
+        )
+      : AppService.logs.unshift(
+          name +
+            ' soltou o Luke às ' +
+            data.toLocaleTimeString('pt-BR') +
+            ' do dia ' +
+            diaF +
+            '/' +
+            mesF +
+            '/' +
+            anoF,
+        );
+    const last10 = AppService.logs.slice(0, 10);
+    this.server.emit('msgToClient', {
+      statusPreso: AppService.statusPreso,
+      logs: last10,
+    });
   }
 
   afterInit(server: Server) {
@@ -29,9 +62,13 @@ export class AppGateway
   }
 
   handleConnection(client: Socket) {
+    const last10 = AppService.logs.slice(
+      Math.max(AppService.logs.length - 10, 0),
+    );
     this.logger.log('ClientConnected');
     this.server.emit('ClientConnected', {
       statusPreso: AppService.statusPreso,
+      logs: last10,
     });
   }
 

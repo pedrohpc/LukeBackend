@@ -7,4 +7,5 @@ export class AppService {
   }
 
   static statusPreso: boolean;
+  static logs = [];
 }
