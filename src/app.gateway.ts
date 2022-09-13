@@ -22,6 +22,7 @@ export class AppGateway
   handleEvent(@MessageBody() name: string): void {
     AppService.statusPreso = !AppService.statusPreso;
     const data = new Date();
+    data.setHours(data.getHours() - 3);
     const dia = data.getDate().toString();
     const diaF = dia.length == 1 ? '0' + dia : dia;
     const mes = (data.getMonth() + 1).toString(); //+1 pois no getMonth Janeiro começa com zero.
