@@ -8,12 +8,13 @@ import { LogsModule } from './logs.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: 'password',
-      database: 'luke',
+      type: 'postgres',
+      host: 'ec2-52-207-90-231.compute-1.amazonaws.com',
+      port: 5432,
+      username: 'gatktqkyyrozaq',
+      password:
+        '89fde3f2b5876330bac23bbfde8d460927d0a74ffda03b2736aff1c9b7228f5a',
+      database: 'd1cj41tonso4n5',
       entities: [Logs],
       synchronize: true,
     }),
