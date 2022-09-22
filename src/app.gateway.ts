@@ -9,51 +9,29 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { AppService } from './app.service';
+import { LogsService } from './logs.service';
 
 @WebSocketGateway()
 export class AppGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
+  constructor(private readonly logsService: LogsService) {}
+
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('AppGateway');
 
   @SubscribeMessage('atualizarLukeStatus')
-  handleEvent(@MessageBody() name: string): void {
-    AppService.statusPreso = !AppService.statusPreso;
-    const data = new Date();
-    data.setHours(data.getHours() - 3);
-    const dia = data.getDate().toString();
-    const diaF = dia.length == 1 ? '0' + dia : dia;
-    const mes = (data.getMonth() + 1).toString(); //+1 pois no getMonth Janeiro começa com zero.
-    const mesF = mes.length == 1 ? '0' + mes : mes;
-    const anoF = data.getFullYear();
-    AppService.statusPreso
-      ? AppService.logs.unshift(
-          name +
-            ' prendeu o Luke às ' +
-            data.toLocaleTimeString('pt-BR') +
-            ' do dia ' +
-            diaF +
-            '/' +
-            mesF +
-            '/' +
-            anoF,
-        )
-      : AppService.logs.unshift(
-          name +
-            ' soltou o Luke às ' +
-            data.toLocaleTimeString('pt-BR') +
-            ' do dia ' +
-            diaF +
-            '/' +
-            mesF +
-            '/' +
-            anoF,
-        );
-    const last10 = AppService.logs.slice(0, 10);
+  async handleEvent(@MessageBody() name: string) {
+    const dataAtual = new Date();
+    const lukePreso = await this.logsService.findLastStatus();
+    await this.logsService.createLog({
+      nome: name,
+      data: dataAtual,
+      status: !lukePreso[0]?.status,
+    });
+    const last10 = await this.logsService.findAll();
     this.server.emit('msgToClient', {
-      statusPreso: AppService.statusPreso,
+      statusPreso: !lukePreso[0]?.status,
       logs: last10,
     });
   }
@@ -62,13 +40,12 @@ export class AppGateway
     this.logger.log('Init');
   }
 
-  handleConnection(client: Socket) {
-    const last10 = AppService.logs.slice(
-      Math.max(AppService.logs.length - 10, 0),
-    );
+  async handleConnection(client: Socket) {
+    const last10 = await this.logsService.findAll();
+    const lukePreso = await this.logsService.findLastStatus();
     this.logger.log('ClientConnected');
     this.server.emit('ClientConnected', {
-      statusPreso: AppService.statusPreso,
+      statusPreso: lukePreso[0]?.status,
       logs: last10,
     });
   }
