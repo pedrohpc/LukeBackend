@@ -17,7 +17,7 @@ import { LogsModule } from './logs.module';
       database: 'd1cj41tonso4n5',
       entities: [Logs],
       synchronize: true,
-      ssl: true,
+      ssl: { rejectUnauthorized: false },
     }),
     LogsModule,
   ],
